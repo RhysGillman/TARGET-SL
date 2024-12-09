@@ -14,6 +14,6 @@ end
 sample_table = struct2table(samples);
 
 % Write the table to a new file
-writetable(sample_table, strcat('../results/CCLE_',network,'/SCS/',cancer_type,'/sample_names.txt'));
+writetable(sample_table, strcat('../results/',run_mode,'/network_',network,'/SCS/',cancer_type,'/sample_names.txt'));
 
 end

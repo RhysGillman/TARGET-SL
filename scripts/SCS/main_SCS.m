@@ -1,4 +1,4 @@
-function [] = main_SCS( network, cell_type)
+function [] = main_SCS( network, cell_type, run_mode)
 
 MAIN_DIR="../..";
 %   $Id: main_SCS.m Created at 2017-10-22 16:25:22 $
@@ -36,7 +36,7 @@ for i = 1:length(result_driver_gene_module)
     if ~isempty(current_element)
         current_element = cell2table(current_element);
         % Create a file name for the current element
-        file_name = sprintf(strcat(MAIN_DIR,'/results/CCLE_',network,'/SCS/',cell_type,'/result_sample_%d.csv'), i);
+        file_name = sprintf(strcat(MAIN_DIR,'/results/',run_mode,'/network_',network,'/SCS/',cell_type,'/result_sample_%d.csv'), i);
         
         % Write the contents of the current element to a .csv file
         writetable(current_element, file_name);

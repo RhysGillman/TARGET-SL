@@ -41,6 +41,14 @@ mkdir -p log
 mkdir -p results/$mode/network_$network_choice
 mkdir -p tmp
 
+if [[ "$cancer_types" == "ALL" ]]
+then
+ 
+    dos2unix benchmark_data/network_${network_choice}/lineages.txt
+    readarray -t cancer_types < benchmark_data/network_${network_choice}/lineages.txt
+
+fi
+
 
 for cancer_type in ${cancer_types[@]}; do
     echo -e "\n\n---------------------------"
@@ -290,7 +298,7 @@ for cancer_type in ${cancer_types[@]}; do
         # Prepare input data
         Rscript --vanilla "scripts/prepare_SCS_data.R" -m $mode -n $network_choice -c $cancer_type
         
-        if (($network_choice=="own"))
+        if [[ "$network_choice" == "own" ]]
         then
           cp -f data/own_networks/SCS.mat tmp/tmp_network.mat
           cd scripts
@@ -305,7 +313,7 @@ for cancer_type in ${cancer_types[@]}; do
         # Start time
         start=$(date +%s.%N)
 
-        matlab -batch "main_SCS('$network_choice', '$cancer_type')" > $SCRIPT_DIR/log/SCS_${network_choice}_${cancer_type}.log &
+        matlab -batch "main_SCS('$network_choice', '$cancer_type', '$mode')" > $SCRIPT_DIR/log/SCS_${network_choice}_${cancer_type}.log &
         pid=$!
 
         max_mem=$( memory_usage $pid )
@@ -503,23 +511,20 @@ for cancer_type in ${cancer_types[@]}; do
     # Run badDriver Simulation                                 #
     ############################################################
     
-    if (($run_badDriver==1))
-    then
-        echo -e "\n\n---------------------------"
-        echo -e "Running badDriver Simulation for $cancer_type"
-        echo -e "---------------------------\n\n"
+    #if (($run_badDriver==1))
+    #then
+    #    echo -e "\n\n---------------------------"
+    #    echo -e "Running badDriver Simulation for $cancer_type"
+    #    echo -e "---------------------------\n\n"
         
         
         # Run
         
-        Rscript --vanilla "scripts/badDriver.R" -n $network_choice -c $cancer_type -t $threads -r $badDriver_ref_set -s $badDriver_n_sim
+    #    Rscript --vanilla "scripts/badDriver.R" -n $network_choice -c $cancer_type -t $threads -r $badDriver_ref_set -s $badDriver_n_sim
         
     
     
-    fi
-    
-    
-    done
+    #fi
     
     
 done
