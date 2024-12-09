@@ -14,7 +14,7 @@ option_list = list(
   make_option(c("-n", "--network"), type="character", default="STRINGv11", 
               help="network to use", metavar ="Network"),
   make_option(c("-c", "--cancertype"), type="character", default="Liver", 
-              help="cancer type to analyse", metavar ="Cell Type"),
+              help="cancer type to analyse", metavar ="Cell Type")
   
 ); 
 
@@ -24,8 +24,6 @@ opt = parse_args(opt_parser);
 run_mode <- opt$mode
 network_choice <- opt$network
 cancer_type <- opt$cancertype
-WORK_DIR <- opt$work
-threads <- opt$threads
 
 if(run_mode=="benchmark"){
   
