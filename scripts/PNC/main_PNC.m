@@ -1,4 +1,4 @@
-function [] = main_PNC( network, cell_type, gurobi_path)
+function [] = main_PNC( network, cell_type, gurobi_path, run_mode)
 
 addpath(gurobi_path)
 
@@ -32,8 +32,8 @@ network_fileName = '../../tmp/tmp_network.mat';
 
 % Rhys note: Below code added by me
 
-writetable(array2table(PNC_driver_result,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/PNC/',cell_type,'/result.csv'), 'WriteRowNames',true)
-writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/PNC/',cell_type,'/out_deg.csv'), 'WriteRowNames',false)
-writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/PNC/',cell_type,'/in_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(PNC_driver_result,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/PNC/',cell_type,'/result.csv'), 'WriteRowNames',true)
+writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/PNC/',cell_type,'/out_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/PNC/',cell_type,'/in_deg.csv'), 'WriteRowNames',false)
 
 end

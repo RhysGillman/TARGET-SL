@@ -361,10 +361,10 @@ for cancer_type in ${cancer_types[@]}; do
         
         mkdir -p results/$mode/network_$network_choice/PNC/$cancer_type
         # Prepare input data
-        Rscript --vanilla "scripts/prepare_PNC_data.R" -n $network_choice -c $cancer_type
+        Rscript --vanilla "scripts/prepare_PNC_data.R" -m $mode -n $network_choice -c $cancer_type
 
 
-        if (($network_choice=="own"))
+        if [[ "$network_choice" == "own" ]]
         then
           cp -f data/own_networks/PNC.mat tmp/tmp_network.mat
           cd scripts
@@ -378,7 +378,7 @@ for cancer_type in ${cancer_types[@]}; do
         # Start time
         start=$(date +%s.%N)
 
-        matlab -batch "main_PNC('$network_choice', '$cancer_type', '$gurobi_path')" > $SCRIPT_DIR/log/PNC_${network_choice}_${cancer_type}.log &
+        matlab -batch "main_PNC('$network_choice', '$cancer_type', '$gurobi_path','$mode')" > $SCRIPT_DIR/log/PNC_${network_choice}_${cancer_type}.log &
         pid=$!
 
         max_mem=$( memory_usage $pid )
@@ -399,7 +399,7 @@ for cancer_type in ${cancer_types[@]}; do
         echo -e "$runtime\t$max_mem" >> $SCRIPT_DIR/log/PNC_${network_choice}_${cancer_type}_stats.txt
 
         cd $SCRIPT_DIR
-        Rscript --vanilla "scripts/format_PNC_results.R" -n $network_choice -c $cancer_type
+        Rscript --vanilla "scripts/format_PNC_results.R" -m $mode -n $network_choice -c $cancer_type
         
         
         # Remove temporary files

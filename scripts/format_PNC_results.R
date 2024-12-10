@@ -9,24 +9,29 @@ suppressPackageStartupMessages (library(data.table, quietly = T))
 
 # Handling input arguments
 option_list = list(
+  make_option(c("-m", "--mode"), type="character", default="benchmark", 
+              help="mode (benchmark or predict)", metavar ="Mode"),
   make_option(c("-n", "--network"), type="character", default="STRINGv11", 
               help="network to use", metavar ="Network"),
-  make_option(c("-c", "--celltype"), type="character", default="Liver", 
-              help="cell type to analyse", metavar ="Cell Type")
+  make_option(c("-c", "--cancertype"), type="character", default="Liver", 
+              help="Cancer type to analyse", metavar ="Cancer Type")
   
 ); 
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
+run_mode <- opt$mode
 network_choice <- opt$network
-cell_type <- opt$celltype
+cancer_type <- opt$cancertype
+
+if(run_mode=="benchmark"){
 
 #############################
 # Sample Info
 #############################
 
-sample_info <- read_csv(paste0("validation_data/CCLE_",network_choice,"/sample_info.csv")) %>% filter(lineage==cell_type)
+sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv")) %>% filter(lineage==cancer_type)
 samples <- sample_info$cell_ID %>% sort()
 
 
@@ -35,13 +40,13 @@ samples <- sample_info$cell_ID %>% sort()
 #############################
 # Mutation
 
-mutation <- fread(paste0("validation_data/CCLE_",network_choice,"/mutations.csv"), select = c("gene_ID",samples)) %>% 
+mutation <- fread(paste0("benchmark_data/network_",network_choice,"/mutations.csv"), select = c("gene_ID",samples)) %>% 
   arrange(gene_ID) %>%
   column_to_rownames("gene_ID")
 
 # CNV
 
-cnv <- fread(paste0("validation_data/CCLE_",network_choice,"/cnv.csv"), select = c("gene_ID",samples)) %>%
+cnv <- fread(paste0("benchmark_data/network_",network_choice,"/cnv.csv"), select = c("gene_ID",samples)) %>%
   column_to_rownames("gene_ID")
 
 # Get a list of altered genes for each sample
@@ -68,7 +73,7 @@ altered_genes <- unique(altered_genes) %>%
 # PNC Results
 #############################
 
-PNC <- read_csv(paste0("results/CCLE_",network_choice,"/PNC/",cell_type,"/result.csv"), show_col_types = FALSE) %>% 
+PNC <- read_csv(paste0("results/",run_mode,"/network_",network_choice,"/PNC/",cancer_type,"/result.csv"), show_col_types = FALSE) %>% 
   column_to_rownames("Row")
 
 PNC_drivers <- which(PNC==1, arr.ind = TRUE) %>% 
@@ -84,11 +89,11 @@ PNC_drivers <- PNC_drivers %>%
   left_join(altered_genes, by = c("sample", "gene_ID")) %>%
   mutate(is_altered = ifelse(is.na(is_altered), FALSE, is_altered))
 
-out_deg <- read_csv(paste0("results/CCLE_",network_choice,"/PNC/",cell_type,"/out_deg.csv"),show_col_types = FALSE)
+out_deg <- read_csv(paste0("results/",run_mode,"/network_",network_choice,"/PNC/",cancer_type,"/out_deg.csv"),show_col_types = FALSE)
 out_deg[is.na(out_deg)] <- 0
 out_deg <- out_deg %>% pivot_longer(!gene_ID, names_to = "sample", values_to = "out_degree")
 
-in_deg <- read_csv(paste0("results/CCLE_",network_choice,"/PNC/",cell_type,"/in_deg.csv"),show_col_types = FALSE)
+in_deg <- read_csv(paste0("results/",run_mode,"/network_",network_choice,"/PNC/",cancer_type,"/in_deg.csv"),show_col_types = FALSE)
 in_deg[is.na(in_deg)] <- 0
 in_deg <- in_deg %>% pivot_longer(!gene_ID, names_to = "sample", values_to = "in_degree")
 degree <- full_join(out_deg,in_deg, by = c("gene_ID", "sample"))
@@ -101,8 +106,9 @@ PNC_results <- PNC_drivers %>%
   group_by(sample) %>%
   mutate(rank = row_number()) %>%
   ungroup() %>%
-  dplyr::mutate(lineage = cell_type) %>%
+  dplyr::mutate(cancer_type = cancer_type) %>%
   arrange(sample, rank) %>%
-  dplyr::select(lineage, cell_ID = sample, driver = gene_ID, rank)
+  dplyr::select(cancer_type, sample_ID = sample, driver = gene_ID, rank)
 
-write_csv(PNC_results, paste0("results/CCLE_",network_choice,"/PNC/",cell_type,".csv"))
+write_csv(PNC_results, paste0("results/",run_mode,"/network_",network_choice,"/PNC/",cancer_type,".csv"))
+}

@@ -33,7 +33,7 @@ if(run_mode=="benchmark"){
 # Sample Info
 #############################
 
-sample_info <- read_csv(paste0("validation_data/CCLE_",network_choice,"/sample_info.csv")) %>% filter(lineage==cancer_type)
+sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv")) %>% filter(lineage==cancer_type)
 samples <- sample_info$cell_ID %>% sort()
 
 #############################
@@ -46,7 +46,7 @@ samples <- sample_info$cell_ID %>% sort()
 
 
 
-rna <- fread(paste0("validation_data/CCLE_",network_choice,"/tpm.csv"), select = c("gene_ID",samples)) %>% 
+rna <- fread(paste0("benchmark_data/network_",network_choice,"/tpm.csv"), select = c("gene_ID",samples)) %>% 
   arrange(gene_ID) %>%
   column_to_rownames("gene_ID") 
 
@@ -86,7 +86,7 @@ write_tsv(pseudonormal_rna %>% rownames_to_column("Genes"), "tmp/tmp_PNC_pseudon
 
 
 
-if(!dir.exists(paste0("results/CCLE_",network_choice,"/PNC"))){
-  dir.create(paste0("results/CCLE_",network_choice,"/PNC"))
+if(!dir.exists(paste0("results/",run_mode,"/network_",network_choice,"/PNC"))){
+  dir.create(paste0("results/",run_mode,"/network_",network_choice,"/PNC"))
 }
 }
