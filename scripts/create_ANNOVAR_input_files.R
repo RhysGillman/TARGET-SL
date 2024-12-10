@@ -18,7 +18,7 @@ option_list = list(
   make_option(c("-n", "--network"), type="character", default="STRINGv11", 
               help="network to use", metavar ="Network"),
   make_option(c("-c", "--cancertype"), type="character", default="Liver", 
-              help="cancer type to analyse", metavar ="Cell Type")
+              help="cancer type to analyse", metavar ="cancer Type")
   
 ); 
 
@@ -88,7 +88,7 @@ if(run_mode=="predict"){
       filter(cell_ID == sample) %>%
       mutate(End = ifelse(nchar(Ref) > 2 & Alt=="-", Pos + nchar(Ref) - 1, Pos)) %>%
       dplyr::select(Chrom,Start=Pos,End,Ref,Alt)
-    write_tsv(annovar_input, col_names = F, paste0("benchmark_data/network_", network_choice, "/ANNOVAR_input/",cell_type,"/",sample,".avinput"))
+    write_tsv(annovar_input, col_names = F, paste0("benchmark_data/network_", network_choice, "/ANNOVAR_input/",cancer,"/",sample,".avinput"))
     
   }
   

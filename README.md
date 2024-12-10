@@ -16,3 +16,5 @@ dependnecies
 - install PersonaDrive python requirements
 
 pip install -r scripts/PersonaDrive/requirements.txt
+
+execute permission on all scripts

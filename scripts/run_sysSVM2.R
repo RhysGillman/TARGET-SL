@@ -21,7 +21,7 @@ option_list = list(
   make_option(c("-n", "--network"), type="character", default="STRINGv11", 
               help="network to use", metavar ="Network"),
   make_option(c("-c", "--cancertype"), type="character", default="Liver", 
-              help="cancer type to analyse", metavar ="Cell Type"),
+              help="cancer type to analyse", metavar ="cancer Type")
   
 ); 
 

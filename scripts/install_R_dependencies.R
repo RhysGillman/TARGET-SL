@@ -54,13 +54,13 @@ if (any(installed_packages == FALSE)) {
 
 # Github Packages
 
-#packages <- c(
-#    "PCSF"="IOR-Bioinformatics/PCSF",
+packages <- c(
+    "PCSF"="IOR-Bioinformatics/PCSF"
 #    "TidyComb"="DrugComb/TidyComb"
-#)
+)
 
-#installed_packages <- names(packages) %in% rownames(installed.packages())
-#if (any(installed_packages == FALSE)) {
-#  devtools::install_github(packages[!installed_packages],
-#                         dependencies=TRUE, type="source", force=TRUE)
-#}
+installed_packages <- names(packages) %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+ devtools::install_github(packages[!installed_packages],
+                         dependencies=TRUE, type="source", force=TRUE)
+}

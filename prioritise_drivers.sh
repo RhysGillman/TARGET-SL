@@ -52,7 +52,7 @@ fi
 
 for cancer_type in ${cancer_types[@]}; do
     echo -e "\n\n---------------------------"
-    echo -e "Commencing Driver Prioritisation for cell type: $cancer_type"
+    echo -e "Commencing Driver Prioritisation for cancer type: $cancer_type"
     echo -e "---------------------------\n\n"
     
 
@@ -131,9 +131,9 @@ for cancer_type in ${cancer_types[@]}; do
         # Formatting results
         Rscript --vanilla "scripts/format_OncoImpact_results.R" -n $network_choice -c $cancer_type -T $tmp
         # Remove temporary files
-        rm -rf "results/network_$network_choice/OncoImpact/$cancer_type/ANALYSIS"
-        rm -rf "results/network_$network_choice/OncoImpact/$cancer_type/COMPLETE_SAMPLES"
-        rm -rf "results/network_$network_choice/OncoImpact/$cancer_type/INCOMPLETE_SAMPLES"
+        rm -rf "results/$mode/network_$network_choice/OncoImpact/$cancer_type/ANALYSIS"
+        rm -rf "results/$mode/network_$network_choice/OncoImpact/$cancer_type/COMPLETE_SAMPLES"
+        rm -rf "results/$mode/network_$network_choice/OncoImpact/$cancer_type/INCOMPLETE_SAMPLES"
         rm tmp/tmp_${cancer_type}_OncoImpact_cnv.txt
         rm tmp/tmp_${cancer_type}_OncoImpact_config.cfg
         rm tmp/tmp_${cancer_type}_OncoImpact_EXP.txt
@@ -157,7 +157,7 @@ for cancer_type in ${cancer_types[@]}; do
         # Start time
         start=$(date +%s.%N)
 
-        python3 scripts/PersonaDrive/constructing_PBNs.py -o "$SCRIPT_DIR/results/network_$network_choice/PersonaDrive/$cancer_type" >> log/PersonaDrive_${network_choice}_${cancer_type}.log &
+        python3 scripts/PersonaDrive/constructing_PBNs.py -o "$SCRIPT_DIR/results/$mode/network_$network_choice/PersonaDrive/$cancer_type" >> log/PersonaDrive_${network_choice}_${cancer_type}.log &
     
         # Get the process ID (PID) of the  script
         pid=$!
@@ -165,7 +165,7 @@ for cancer_type in ${cancer_types[@]}; do
         wait $pid
 
         echo "2 - Rank Mutated Genes ..." >> log/PersonaDrive_${network_choice}_${cancer_type}.log
-        python3 scripts/PersonaDrive/PersonaDrive.py -o "$SCRIPT_DIR/results/network_$network_choice/PersonaDrive/$cancer_type" >> log/PersonaDrive_${network_choice}_${cancer_type}.log &
+        python3 scripts/PersonaDrive/PersonaDrive.py -o "$SCRIPT_DIR/results/$mode/network_$network_choice/PersonaDrive/$cancer_type" >> log/PersonaDrive_${network_choice}_${cancer_type}.log &
         # Get the process ID (PID) of the  script
         pid=$!
         max_mem2=$( memory_usage $pid )
@@ -211,8 +211,8 @@ for cancer_type in ${cancer_types[@]}; do
         echo -e "Running sysSVM2 for $cancer_type"
         echo -e "---------------------------\n\n"
         
-        mkdir -p validation_data/network_$network_choice/ANNOVAR_input/$cancer_type
-        mkdir -p results/network_$network_choice/sysSVM2/$cancer_type
+        mkdir -p benchmark_data/network_$network_choice/ANNOVAR_input/$cancer_type
+        mkdir -p results/$mode/network_$network_choice/sysSVM2/$cancer_type
         
         
         # Prepare input data

@@ -27,7 +27,7 @@ option_list = list(
               help="Number of threads to use", metavar ="Threads"),
   make_option(c("-w", "--workdir"), type="character", default=NULL, 
               help="working directory", metavar ="Working Directory"),
-  make_option(c("-T", "--tmp"), type="character", default=NULL, 
+  make_option(c("-T", "--tmp"), type="character", default="NA", 
               help="temporary directory with symbolic link permission", metavar ="Tmp")
 ); 
 
@@ -229,7 +229,7 @@ if(!dir.exists(paste0("results/",run_mode,"/network_",network_choice,"/OncoImpac
 
 perl_dir <- gsub("([A-Za-z]):", "/\\L\\1",WORK_DIR, perl = T)
 
-if(!is.null(TMP_DIR)){
+if(!is.na(TMP_DIR) & TMP_DIR!="NA"){
   out_dir <- gsub("([A-Za-z]):", "/\\L\\1",TMP_DIR, perl = T)  
 }else{
   out_dir <- perl_dir
