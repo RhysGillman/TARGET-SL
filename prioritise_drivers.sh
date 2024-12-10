@@ -263,7 +263,7 @@ for cancer_type in ${cancer_types[@]}; do
         
         # Start time
         start=$(date +%s.%N)
-        Rscript --vanilla "scripts/run_PRODIGY.R" -n $network_choice -c $cancer_type -t $threads > log/PRODIGY_${network_choice}_${cancer_type}.log &
+        Rscript --vanilla "scripts/run_PRODIGY.R" -m $mode -n $network_choice -c $cancer_type -t $threads > log/PRODIGY_${network_choice}_${cancer_type}.log &
         # Get the process ID (PID) of the  script
         pid=$!
         max_mem=$( memory_usage $pid )

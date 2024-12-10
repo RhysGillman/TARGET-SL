@@ -5,6 +5,5 @@
 log/
 results/
 tmp/
-data/
 benchmark_data/
 TARGET-SL.Rproj
