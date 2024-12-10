@@ -1,4 +1,4 @@
-function [] = main_Benchmark_control( network, cell_type, gurobi_path)
+function [] = main_Benchmark_control( network, cell_type, gurobi_path, run_mode)
 
 addpath(gurobi_path)
 
@@ -41,45 +41,45 @@ Network_method_index=1;
 
 %%**************Part 3:save the result****
 
-writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_MMS_result.csv'),'WriteRowNames',true)
-writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_MDS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_NCUA_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_DFVS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_out_deg.csv'), 'WriteRowNames',false)
-writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/CSN_in_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_MMS_result.csv'),'WriteRowNames',true)
+writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_MDS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_NCUA_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_DFVS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_out_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/CSN_in_deg.csv'), 'WriteRowNames',false)
 vars = {'MMS','MDS','NCU','NCD','out_deg','in_deg'};
 clear(vars{:})
 
 Network_method_index=2;
 [ MMS,MDS,NCU,NCD, out_deg, in_deg ] = benchmark_control( data,ref_data,gene_list,Network_method_index,network_fileName );
-writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_MMS_result.csv'),'WriteRowNames',true)
-writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_MDS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_NCUA_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_DFVS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_out_deg.csv'), 'WriteRowNames',false)
-writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SSN_in_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_MMS_result.csv'),'WriteRowNames',true)
+writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_MDS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_NCUA_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_DFVS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_out_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SSN_in_deg.csv'), 'WriteRowNames',false)
 vars = {'MMS','MDS','NCU','NCD','out_deg','in_deg'};
 clear(vars{:})
 
 Network_method_index=3;
 [ MMS,MDS,NCU,NCD, out_deg, in_deg ] = benchmark_control( data,ref_data,gene_list,Network_method_index,network_fileName );
-writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_MMS_result.csv'),'WriteRowNames',true)
-writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_MDS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_NCUA_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_DFVS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_out_deg.csv'), 'WriteRowNames',false)
-writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_in_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_MMS_result.csv'),'WriteRowNames',true)
+writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_MDS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_NCUA_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_DFVS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_out_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/SPCC_in_deg.csv'), 'WriteRowNames',false)
 vars = {'MMS','MDS','NCU','NCD','out_deg','in_deg'};
 clear(vars{:})
 
 Network_method_index=4;
 [ MMS,MDS,NCU,NCD, out_deg, in_deg ] = benchmark_control( data,ref_data,gene_list,Network_method_index,network_fileName );
-writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_MMS_result.csv'),'WriteRowNames',true)
-writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_MDS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_NCUA_result.csv'), 'WriteRowNames',true)
-writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_DFVS_result.csv'), 'WriteRowNames',true)
-writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_out_deg.csv'), 'WriteRowNames',false)
-writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/CCLE_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_in_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(MMS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_MMS_result.csv'),'WriteRowNames',true)
+writetable(array2table(MDS,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_MDS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCU,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_NCUA_result.csv'), 'WriteRowNames',true)
+writetable(array2table(NCD,"RowNames",tumor.textdata(2:end,1),"VariableNames",tumor.textdata(1,2:end)), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_DFVS_result.csv'), 'WriteRowNames',true)
+writetable(array2table(out_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_out_deg.csv'), 'WriteRowNames',false)
+writetable(array2table(in_deg,"VariableNames",['gene_ID',tumor.textdata(1,2:end)]), strcat('../../results/',run_mode,'/network_',network,'/combined_de_novo_methods/',cell_type,'/LIONESS_in_deg.csv'), 'WriteRowNames',false)
 vars = {'MMS','MDS','NCU','NCD','out_deg','in_deg'};
 clear(vars{:})
 

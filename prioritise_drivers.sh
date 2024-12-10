@@ -420,10 +420,10 @@ for cancer_type in ${cancer_types[@]}; do
         
         mkdir -p results/$mode/network_$network_choice/combined_de_novo_methods/$cancer_type
         # Prepare input data
-        Rscript --vanilla "scripts/prepare_combined_de_novo_methods_data.R" -n $network_choice -c $cancer_type
+        Rscript --vanilla "scripts/prepare_combined_de_novo_methods_data.R" -m $mode -n $network_choice -c $cancer_type
 
 
-        if (($network_choice=="own"))
+        if [[ "$network_choice" == "own" ]]
         then
           cp -f data/own_networks/de_novo_net2.mat tmp/tmp_network.mat
           cd scripts
@@ -437,7 +437,7 @@ for cancer_type in ${cancer_types[@]}; do
         # Start time
         start=$(date +%s.%N)
 
-        matlab -batch "main_Benchmark_control('$network_choice', '$cancer_type', '$gurobi_path')" > $SCRIPT_DIR/log/combined_de_novo_methods_${network_choice}_${cancer_type}.log &
+        matlab -batch "main_Benchmark_control('$network_choice', '$cancer_type', '$gurobi_path', '$mode')" > $SCRIPT_DIR/log/combined_de_novo_methods_${network_choice}_${cancer_type}.log &
         pid=$!
 
         max_mem=$( memory_usage $pid )
@@ -458,7 +458,7 @@ for cancer_type in ${cancer_types[@]}; do
         echo -e "$runtime\t$max_mem" >> $SCRIPT_DIR/log/combined_de_novo_methods_${network_choice}_${cancer_type}_stats.txt
 
         cd $SCRIPT_DIR
-        Rscript --vanilla "scripts/format_combined_de_novo_methods_results.R" -n $network_choice -c $cancer_type
+        Rscript --vanilla "scripts/format_combined_de_novo_methods_results.R" -m $mode -n $network_choice -c $cancer_type
         
         # Remove temporary files
         rm tmp/tmp_combined_de_novo_methods_pseudonormal_expression.txt

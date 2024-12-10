@@ -106,7 +106,7 @@ PNC_results <- PNC_drivers %>%
   group_by(sample) %>%
   mutate(rank = row_number()) %>%
   ungroup() %>%
-  dplyr::mutate(cancer_type = cancer_type) %>%
+  dplyr::mutate(cancer_type) %>%
   arrange(sample, rank) %>%
   dplyr::select(cancer_type, sample_ID = sample, driver = gene_ID, rank)
 
