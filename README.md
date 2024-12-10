@@ -12,4 +12,7 @@ files
 
 dependnecies
 - annovar
-- 
+- run install_R_dependencies
+- install PersonaDrive python requirements
+
+pip install -r scripts/PersonaDrive/requirements.txt
