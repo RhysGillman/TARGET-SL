@@ -25,7 +25,8 @@ packages <- c(
     "TopKLists",
     "truncnorm",
     "e1071",
-    "coin"
+    "coin",
+    "svglite"
     
 )
 
