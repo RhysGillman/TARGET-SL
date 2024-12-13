@@ -109,12 +109,21 @@ calDrivingForce <- function(network,
     }
     names(res) <- enrichname[1:length(res)]
     res <- res[!(sapply(res, is.null))]
+    
+    ###### Rhys note: incorrect columns referenced, fixed ########################################
+    #res <- lapply(res, function(x){
+    #  if (th.enrich.type == 'p.adj') enrich.p <- x[,6]
+    #  else if (th.enrich.type == 'p.value') enrich.p <- x[,5]
+    #  res <- x[enrich.p < th.enrich & abs(x[, 11]) > th.zscore & !(is.nan(x[,11])),]
+    #  return(res)
+    #})
     res <- lapply(res, function(x){
-      if (th.enrich.type == 'p.adj') enrich.p <- x[,6]
-      else if (th.enrich.type == 'p.value') enrich.p <- x[,5]
-      res <- x[enrich.p < th.enrich & abs(x[, 11]) > th.zscore & !(is.nan(x[,11])),]
+      if (th.enrich.type == 'p.adj') enrich.p <- x[,9]
+      else if (th.enrich.type == 'p.value') enrich.p <- x[,8]
+      res <- x[enrich.p < th.enrich & abs(x[, 14]) > th.zscore & !(is.nan(x[,14])),]
       return(res)
     })
+    #############################################################################################
     res <- res[sapply(res, function(x) return(dim(x)[1])) != 0]
     if (length(res) == 0) return(NULL)
     enrichgene <- enrichgene[match(names(res), names(enrichgene))]
