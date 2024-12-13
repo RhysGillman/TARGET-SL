@@ -7,10 +7,8 @@ suppressPackageStartupMessages (library(tidyverse, quietly = T))
 suppressPackageStartupMessages (library(data.table, quietly = T))
 suppressPackageStartupMessages (library(foreach, quietly = T))
 suppressPackageStartupMessages (library(doParallel, quietly = T))
-suppressPackageStartupMessages (library(ggpubr, quietly = T))
 suppressPackageStartupMessages (library(coin, quietly = T))
 suppressPackageStartupMessages (library(svglite, quietly = T))
-suppressPackageStartupMessages (library(ggh4x, quietly = T))
 suppressPackageStartupMessages (library(patchwork, quietly = T))
 
 # Handling input arguments
@@ -297,6 +295,9 @@ plot_without_opacity(summarised_stats=all_vs_all_results_summarised,
                   N_max=10, 
                   title="All Predictions vs All Ground Truth Essential Genes")
 
+
+ggsave("plots/benchmark/essential_genes_all_vs_all.png")
+
 ##########################
 # Rare vs Rare Benchmark #
 ##########################
@@ -318,6 +319,8 @@ plot_without_opacity(summarised_stats=rare_vs_rare_results_summarised,
                   plot_measure=c("Mean Precision"="mean_precision"), 
                   N_max=10, 
                   title="Rare Predictions vs Rare Ground Truth Essential Genes")
+
+ggsave("plots/benchmark/essential_genes_rare_vs_rare.png")
 
 #####################
 # Quantitative Plot #
@@ -436,4 +439,4 @@ ggplot(plot_data, aes(x=mean_weighted_z, y=mean_gene_effect, colour=point_scale)
   )
 
 
-ggsave("", device = svglite, width = 15, height = 10, units = "cm")
+ggsave("plots/benchmark/essential_genes_quantitative.svg", device = svglite, width = 15, height = 10, units = "cm")

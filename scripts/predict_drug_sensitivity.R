@@ -10,10 +10,8 @@ suppressPackageStartupMessages (library(tidyverse, quietly = T))
 suppressPackageStartupMessages (library(data.table, quietly = T))
 suppressPackageStartupMessages (library(foreach, quietly = T))
 suppressPackageStartupMessages (library(doParallel, quietly = T))
-#suppressPackageStartupMessages (library(ggpubr, quietly = T))
 suppressPackageStartupMessages (library(coin, quietly = T))
-suppressPackageStartupMessages (library(svglite, quietly = T))
-#suppressPackageStartupMessages (library(ggh4x, quietly = T))
+
 
 
 

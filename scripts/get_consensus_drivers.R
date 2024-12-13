@@ -18,9 +18,8 @@ option_list = list(
   make_option(c("-M", "--method"), type="character", default="custom", 
               help="Rank aggregation method to be used", metavar ="Rank Aggregation Method"),
   make_option(c("-c", "--cancertype"), type="character", default="all", 
-              help="Cancer types to analyse separated by semicolons, or 'ALL' (Default)", metavar ="Cancer Type"),
-  make_option(c("-s", "--sampleinfo"), type="character", default=NULL, 
-              help="path to sample info file", metavar ="Sample Info")
+              help="Cancer types to analyse separated by semicolons, or 'ALL' (Default)", metavar ="Cancer Type")
+
   
 );
 
@@ -33,9 +32,7 @@ network_choice <- opt$network
 algorithms <- opt$algorithms
 RAmethod <- opt$method
 cancer <- opt$cancertype
-if(run_mode=="predict"){
-  sample_info_path <- opt$sampleinfo
-}
+
 
 algorithms <- str_split(algorithms,";") %>% unlist()
 cancer <- str_split(cancer,";") %>% unlist()
