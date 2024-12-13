@@ -27,14 +27,14 @@ network_choice <- opt$network
 cancer <- opt$cancertype
 TMP_DIR <- opt$tmp
 
-if(TMP_DIR%in%c("","NA","none",no) | is.na(TMP_DIR)){
+if(TMP_DIR%in%c("","NA","none","no") | is.na(TMP_DIR)){
   TMP_DIR=NULL
 }
 
 if(!is.null(TMP_DIR)){
   out_dir <- TMP_DIR 
 }else{
-  out_dir <- "./"
+  out_dir <- "."
 }
 
 

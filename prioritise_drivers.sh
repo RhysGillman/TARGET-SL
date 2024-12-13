@@ -224,7 +224,7 @@ for cancer_type in ${cancer_types[@]}; do
         
         # Run
         
-        Rscript --vanilla "scripts/run_sysSVM.r" -m $mode -s $sample_info -n $network_choice -c $cancer_type -a $annovar_path -d $maf -v $cnv -V $cnv_CNR  > $SCRIPT_DIR/log/sysSVM2_${network_choice}_${cancer_type}.log &
+        Rscript --vanilla "scripts/run_sysSVM2.R" -m $mode -s $sample_info -n $network_choice -c $cancer_type -a $annovar_path -v $cnv -V $cnv_CNR  > $SCRIPT_DIR/log/sysSVM2_${network_choice}_${cancer_type}.log &
         
         pid=$!
 

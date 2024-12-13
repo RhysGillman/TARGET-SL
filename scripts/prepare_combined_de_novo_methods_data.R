@@ -13,8 +13,8 @@ option_list = list(
               help="mode (benchmark or predict)", metavar ="Mode"),
   make_option(c("-n", "--network"), type="character", default="STRINGv11", 
               help="network to use", metavar ="Network"),
-  make_option(c("-c", "--celltype"), type="character", default="Liver", 
-              help="cell type to analyse", metavar ="Cell Type")
+  make_option(c("-c", "--cancertype"), type="character", default="Liver", 
+              help="cancer type to analyse", metavar ="Cancer Type")
   
 ); 
 
@@ -32,7 +32,7 @@ if(run_mode=="benchmark"){
 # Sample Info
 #############################
 
-sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv")) %>% filter(lineage==cell_type)
+sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv")) %>% filter(lineage==cancer_type)
 samples <- sample_info$cell_ID %>% sort()
 
 #############################

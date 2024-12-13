@@ -22,7 +22,7 @@ option_list = list(
               help="network to use", metavar ="Network"),
   make_option(c("-c", "--cancertype"), type="character", default="Liver", 
               help="cancer type to analyse", metavar ="Cell Type"),
-  make_option(c("-t", "--threads"), type="character", default=4, 
+  make_option(c("-t", "--threads"), type="integer", default=4, 
               help="Number of threads to use", metavar ="Threads")
 ); 
 
@@ -60,11 +60,11 @@ message("Loading Data")
 # Network
 
 if(network_choice=="own"){
-  STN <- fread("data/own_networks/PhenoDriverR.txt")
+  STN <- fread("data/own_networks/PhenoDriverR.txt") %>% as.data.frame()
 }else{
 
   ## Only keeping edges with known excitatory vs inhibitory information
-  original_network <- fread(paste0("benchmark_data/network_",network_choice,"/network_directed.csv")) %>% select(Source_nodes = protein_1, Target_nodes = protein_2)
+  original_network <- fread(paste0("benchmark_data/network_",network_choice,"/network_directed.csv")) %>% as.data.frame() %>% dplyr::select(Source_nodes = protein_1, Target_nodes = protein_2)
   original_STN <- read.delim("scripts/PhenoDriverR/SignalTransductionNet.txt")
   STN <- inner_join(original_STN, original_network, by = c("Source_nodes","Target_nodes"))
 
@@ -73,6 +73,7 @@ if(network_choice=="own"){
 # RNA
 
 rna <- fread(paste0("benchmark_data/network_",network_choice,"/counts.csv"), select = c("gene_ID",samples)) %>% 
+  as.data.frame() %>%
   arrange(gene_ID) %>%
   column_to_rownames("gene_ID") 
 
@@ -103,6 +104,7 @@ allexp <- merge(rna, pseudonormal_rna)
 # Mutation
 
 mutation <- fread(paste0("benchmark_data/network_",network_choice,"/mutations_MAF.csv")) %>%
+  as.data.frame() %>%
   filter(cell_ID %in% samples)
 
 # Pathways
