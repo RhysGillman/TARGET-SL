@@ -33,7 +33,7 @@ read_driver_results <- function(mode,algorithms,cancertype){
       }else if(!alg %in% algorithms){
         
         # Unless it is a specific de novo method
-        if(any(algorithms %in% de_novo_collection) & alg %in% de_novo_collection){
+        if(any(algorithms %in% de_novo_collection) & alg == "combined_de_novo_methods"){
           specific_de_novo <- algorithms[algorithms %in% de_novo_collection]
           alg <- "combined_de_novo_methods"
         }else{

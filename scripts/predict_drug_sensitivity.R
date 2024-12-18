@@ -109,7 +109,7 @@ if(run_mode=="predict"){
     mutate(n_targets=length(gene_ID)) %>%
     ungroup()
 }else if(run_mode=="benchmark"){
-  drug_targets <- fread("benchmark_data/inhibitory_drug_targets.csv") %>%
+  drug_targets <- fread(paste0("benchmark_data/",network_choice,"/drug_targets.csv")) %>%
     dplyr::select(drug_ID,gene_ID) %>%
     unique() %>%
     # Get the number of gene targets for each drug

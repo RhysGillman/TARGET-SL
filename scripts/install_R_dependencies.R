@@ -26,7 +26,11 @@ packages <- c(
     "truncnorm",
     "e1071",
     "coin",
-    "svglite"
+    "svglite",
+    "ggpubr",
+    "ggh4x",
+    "ComplexUpset",
+    "UpSetR"
     
 )
 

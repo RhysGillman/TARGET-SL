@@ -10,6 +10,8 @@ suppressPackageStartupMessages (library(doParallel, quietly = T))
 suppressPackageStartupMessages (library(coin, quietly = T))
 suppressPackageStartupMessages (library(svglite, quietly = T))
 suppressPackageStartupMessages (library(patchwork, quietly = T))
+suppressPackageStartupMessages (library(ggpubr, quietly = T))
+suppressPackageStartupMessages (library(ggh4x, quietly = T))
 
 # Handling input arguments
 option_list = list(
@@ -55,7 +57,7 @@ if(threads>1){
 
 
 
-alg_colours <- read_csv("data/algorithm_colours.csv") %>% deframe()
+alg_colours <- read_csv("data/algorithm_colours.csv", show_col_types = F) %>% deframe()
 if(any(!algorithms %in% names(alg_colours))){
   no_col_algs <- algorithms[!algorithms %in% names(alg_colours)]
   add_cols <- rep("#999999", length(no_col_algs))
@@ -64,11 +66,13 @@ if(any(!algorithms %in% names(alg_colours))){
   
 }
 
+source("scripts/benchmark_functions.R")
+
 ###############
 # Sample Info #
 ###############
 
-sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv"))
+sample_info <- read_csv(paste0("benchmark_data/network_",network_choice,"/sample_info.csv"), show_col_types = F)
 if(toupper(cancer) != "ALL"){
   sample_info <- sample_info %>% filter(cancer_type == cancer)
 }
@@ -89,14 +93,14 @@ rare_essential_genes <- fread(paste0("results/benchmark/network_",network_choice
 # Read In Predicted Ground Truth Data #
 #######################################
 
-gold_standard <- fread("benchmark_data/all_gold_standards.csv") %>%
+gold_standard <- fread(paste0("benchmark_data/",network_choice,"/gold_standards.csv")) %>%
   dplyr::select(sample_ID=cell_ID,gene_ID) %>%
   unique() %>%
   group_by(sample_ID) %>%
   summarise(sensitive_genes = list(gene_ID)) %>%
   deframe()
 
-rare_gold_standard <- fread("benchmark_data/rare_gold_standards.csv") %>%
+rare_gold_standard <- fread(paste0("benchmark_data/",network_choice,"/rare_gold_standards.csv")) %>%
   dplyr::select(sample_ID=cell_ID,gene_ID) %>%
   unique() %>%
   group_by(sample_ID) %>%
@@ -105,187 +109,21 @@ rare_gold_standard <- fread("benchmark_data/rare_gold_standards.csv") %>%
 
 gene_effect_z_scores <- fread("benchmark_data/gene_effect_z_scores.csv")
 
-traditional_benchmark_essential_genes <- function(predictions,gold_standard,n_max){
-  
-  predictions <- predictions %>% filter(final_rank <= n_max)
-  
-  tmp_samples <- intersect(predictions$sample_ID, names(gold_standard))
-  
-  result <- foreach(sample=tmp_samples, .combine = "rbind", .packages = c("tidyverse","foreach")) %do% {
-    
-    lineage <- predictions %>% filter(sample_ID==sample) %>% pull(cancer_type) %>% head(1)
-    gs <- gold_standard[sample] %>% unlist()
-    tmp1 <- predictions %>% filter(sample_ID == sample)
-    
-    foreach(alg=unique(tmp1$algorithm), .combine = "rbind", .packages = c("tidyverse","foreach")) %dopar% {
-      
-      tmp2 <- tmp1 %>% filter(algorithm == alg)
-      if(nrow(tmp2)==0){break}
-      n_predictions <- max(tmp2 %>% pull(final_rank))
-      stop_at <- min(n_predictions,n_max)
-      
-      message(paste0("Calculating stats for ", sample, "(",which(tmp_samples == sample),"/",length(tmp_samples),")", " targets using ", alg))
-      
-      foreach(n=1:stop_at, .combine = "rbind", .packages = c("tidyverse")) %do% {
-        
-        predicted <- tmp2 %>% filter(final_rank <= n) %>% pull(target)
-        correct <- predicted[which(predicted %in% gs)]
-        wrong <- predicted[which(!predicted %in% gs)]
-        TP <- length(correct)
-        FP <- length(wrong)
-        precision <- TP/n
-        recall <- TP/length(gs)
-        F1 <- 2*((precision*recall)/(precision + recall))
-        if(is.nan(F1)){
-          F1 <- 0
-        }
-        data.frame(cancer_type=lineage,
-                   sample_ID = sample, 
-                   algorithm = alg, 
-                   n = n,
-                   correct = paste0(correct, collapse = ";"), 
-                   TP = TP,
-                   FP = FP,
-                   precision = precision,
-                   recall = recall,
-                   F1 = F1,
-                   length_gs = length(gs))
-        
-        
-      }
-      
-      
-      
-    }
-    
-  }
-  
-  return(result)
-  
-}
-
-summarise_stats <- function(stats_df,alg_of_interest,min_gs,min_n) {
-  n_samples <- length(unique(stats_df$sample_ID))
-  stats_df_summarised <- stats_df %>%
-    # Combining all badDriver simulations to one mean
-    mutate(algorithm=ifelse(str_detect(algorithm,"randomDriver"), "randomDriver", algorithm)) %>%
-    mutate(algorithm = ifelse(str_detect(algorithm,"consensus"), "Consensus", algorithm)) %>%
-    filter(algorithm %in% alg_of_interest) %>%
-    # Only keeping results for samples with > min_gs gold standards
-    filter(length_gs >= min_gs) %>%
-    group_by(algorithm,n) %>%
-    # Only keep measurements where more than min_n cells are available to calculate mean
-    filter(n()>=min_n) %>%
-    summarise(
-      mean_TP = mean(TP),
-      mean_precision = mean(precision),
-      mean_recall = mean(recall),
-      mean_F1 = median(F1),
-      sample_size = n()
-    ) %>%
-    pivot_longer(cols = -c(algorithm,n,sample_size), names_to = "measure", values_to = "value") %>%
-    mutate(measure = factor(measure, levels = c("mean_TP","mean_recall","mean_precision","mean_F1")),
-           algorithm = factor(algorithm, levels = names(alg_colours)),
-           sample_size = ifelse(algorithm=="randomDriver",n_samples,sample_size))
-  return(stats_df_summarised)
-}
-
-plot_with_opacity <- function(summarised_stats, plot_measure, N_max, title=NULL){
-  
-  plot_data <- summarised_stats %>% filter(measure==plot_measure)
-  
-  alg_linetype <- plot_data$algorithm %>% 
-    unique() %>%
-    sort() %>%
-    as.character()
-  alg_linetype[alg_linetype=="Consensus"] <- "dotted"
-  alg_linetype[alg_linetype=="randomDriver"] <- "dashed"
-  alg_linetype[!alg_linetype%in%c("dotted","dashed")] <- "solid"
-  
-  p1 <- ggplot(mapping=aes(x = n, y = value, color = algorithm)) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(!str_detect(algorithm, "Consensus|randomDriver")), mapping=aes(alpha = sample_size), size = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="Consensus"), linetype = "dotted", size = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", size = 0.8) +
-    scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
-    ylab(names(plot_measure)) +
-    xlab("Number of Predicted Sensitive Genes") +
-    guides(colour=guide_legend(title="Algorithm (Colour)", override.aes = list(linetype = alg_linetype)),
-           alpha="none",
-    ) +
-    theme_bw() +
-    coord_cartesian(ylim = c(0,NA)) +
-    ggtitle(title) +
-    theme(text = element_text(size = 10), 
-          legend.text = element_text(size=7), 
-          legend.title = element_text(size=8,hjust = 0.5),
-          legend.key.height = unit(0.3,"cm"),
-          legend.key.width = unit(1.5,"cm"),
-          plot.title = element_text(hjust = 0.5, size = 8)
-    )
-
-
-  p2 <- ggplot(plot_data %>% filter(!str_detect(algorithm, "Consensus|randomDriver")), aes(colour=sample_size, x=n,y=value)) +
-    geom_line(alpha=0) +
-    scale_color_gradient(high = "black",low = "white",
-                         breaks = c(
-                           min(plot_data %>% filter(!str_detect(algorithm, "Consensus|randomDriver")) %>% pull(sample_size)) %>% round(0),
-                           max(plot_data %>% filter(!str_detect(algorithm, "Consensus|randomDriver")) %>% pull(sample_size)) %>% round(0)
-                         )
-    ) +
-    guides(color=guide_colorbar(title = "Sample Size Remaining\n(Opacity)")) +
-    theme(legend.title = element_text(size=8, hjust=0.5), legend.key.height = unit(0.3,"cm"),
-          axis.title = element_blank(), axis.line = element_blank(), axis.text = element_blank(), rect = element_blank(), axis.ticks = element_blank())
-  
-  p1 + p2 + plot_layout(guides = "collect", widths = c(10,0)) & theme(legend.position = "right")
-}
-
-plot_without_opacity <- function(summarised_stats, plot_measure, N_max, title=NULL){
-  
-  plot_data <- summarised_stats %>% filter(measure==plot_measure)
-  
-  alg_linetype <- plot_data$algorithm %>% 
-    unique() %>%
-    sort() %>%
-    as.character()
-  alg_linetype[alg_linetype=="Consensus"] <- "dotted"
-  alg_linetype[alg_linetype=="randomDriver"] <- "dashed"
-  alg_linetype[!alg_linetype%in%c("dotted","dashed")] <- "solid"
-  
-  ggplot(mapping=aes(x = n, y = value, color = algorithm)) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(!str_detect(algorithm, "Consensus|randomDriver")), size = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="Consensus"), linetype = "dotted", size = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", size = 0.8) +
-    scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
-    ylab(names(plot_measure)) +
-    xlab("Number of Predicted Sensitive Genes") +
-    guides(colour=guide_legend(title="Algorithm (Colour)", override.aes = list(linetype = alg_linetype)),
-           alpha="none",
-    ) +
-    theme_bw() +
-    coord_cartesian(ylim = c(0,NA)) +
-    ggtitle(title) +
-    theme(text = element_text(size = 10), 
-          legend.text = element_text(size=7), 
-          legend.title = element_text(size=8,hjust = 0.5),
-          legend.key.height = unit(0.3,"cm"),
-          legend.key.width = unit(1.5,"cm"),
-          plot.title = element_text(hjust = 0.5, size = 8)
-    )
-}
 
 ########################
 # All vs All Benchmark #
 ########################
 
-if(!file.exists(paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_all_vs_all.csv"))){
+if(!file.exists(paste0("cache/stats_essential_genes_all_vs_all.csv"))){
 
-all_vs_all_results <- traditional_benchmark_essential_genes(all_essential_genes,gold_standard,n_predictions)
+all_vs_all_results <- traditional_benchmark(all_essential_genes,gold_standard,n_predictions,"gene")
 
 write_csv(all_vs_all_results, paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_all_vs_all.csv"))
+write_csv(all_vs_all_results, paste0("cache/stats_essential_genes_all_vs_all.csv"))
 }else{
-  message("Prediction stats file already exists. Reading in previous results.")
-  message(paste0("To stop this, remove file: ", "results/benchmark/network_",network_choice,"/stats_essential_genes_all_vs_all.csv"))
-  all_vs_all_results <- fread(paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_all_vs_all.csv"))
+  message("*****************Stats file already in cache. Reading in previous results.*****************")
+  message(paste0("*****************To stop this, clear cache*****************"))
+  all_vs_all_results <- fread(paste0("cache/stats_essential_genes_all_vs_all.csv"))
 }
 
 all_vs_all_results_summarised <- summarise_stats(all_vs_all_results,algorithms,10,10)
@@ -293,24 +131,37 @@ all_vs_all_results_summarised <- summarise_stats(all_vs_all_results,algorithms,1
 plot_without_opacity(summarised_stats=all_vs_all_results_summarised, 
                   plot_measure=c("Mean Precision"="mean_precision"), 
                   N_max=10, 
-                  title="All Predictions vs All Ground Truth Essential Genes")
+                  title="All Predicted Essential Genes vs All Ground Truth Essential Genes")
 
+ggsave("plots/benchmark/essential_genes_all_vs_all.svg",device = svglite,width = 15,height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_all_vs_all.png", width = 15,height = 8, units = "cm")
 
-ggsave("plots/benchmark/essential_genes_all_vs_all.png")
+top_n_plot_mean_CI(title="All Predicted Essential Genes vs All Ground Truth Essential Genes (Top 10)",
+                   stats_df = all_vs_all_results,
+                   algs = algorithms,
+                   N_max = 10,
+                   measures = "precision",
+                   comparisons = list(c("Consensus","CSN_NCUA"), c("Consensus","OncoImpact")),
+                   y_pos = c(0.45,0.55),
+                   y_pos_randomDriver = 0.65)
+
+ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.png", width = 15, height = 8, units = "cm")
 
 ##########################
 # Rare vs Rare Benchmark #
 ##########################
 
-if(!file.exists(paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_rare_vs_rare.csv"))){
+if(!file.exists(paste0("cache/stats_essential_genes_rare_vs_rare.csv"))){
   
-  rare_vs_rare_results <- traditional_benchmark_essential_genes(rare_essential_genes,rare_gold_standard,n_predictions)
+  rare_vs_rare_results <- traditional_benchmark(rare_essential_genes,rare_gold_standard,n_predictions,"gene")
   
+  write_csv(rare_vs_rare_results, paste0("cache/stats_essential_genes_rare_vs_rare.csv"))
   write_csv(rare_vs_rare_results, paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_rare_vs_rare.csv"))
 }else{
-  message("Prediction stats file already exists. Reading in previous results.")
-  message(paste0("To stop this, remove file: ", "results/benchmark/network_",network_choice,"/stats_essential_genes_rare_vs_rare.csv"))
-  rare_vs_rare_results <- fread(paste0("results/benchmark/network_",network_choice,"/stats_essential_genes_rare_vs_rare.csv"))
+  message("*****************Stats file already in cache. Reading in previous results.*****************")
+  message(paste0("*****************To stop this, clear cache*****************"))
+  rare_vs_rare_results <- fread(paste0("cache/stats_essential_genes_rare_vs_rare.csv"))
 }
 
 rare_vs_rare_results_summarised <- summarise_stats(rare_vs_rare_results,algorithms,10,10)
@@ -318,9 +169,22 @@ rare_vs_rare_results_summarised <- summarise_stats(rare_vs_rare_results,algorith
 plot_without_opacity(summarised_stats=rare_vs_rare_results_summarised, 
                   plot_measure=c("Mean Precision"="mean_precision"), 
                   N_max=10, 
-                  title="Rare Predictions vs Rare Ground Truth Essential Genes")
+                  title="Rare Predicted Essential Genes vs Rare Ground Truth Essential Genes")
 
-ggsave("plots/benchmark/essential_genes_rare_vs_rare.png")
+ggsave("plots/benchmark/essential_genes_rare_vs_rare.svg",device = svglite,width = 15,height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_rare_vs_rare.png", width = 15,height = 8, units = "cm")
+
+top_n_plot_mean_CI(title="Rare Predicted Essential Genes vs Rare Ground Truth Essential Genes (Top 10)",
+                   stats_df = rare_vs_rare_results,
+                   algs = algorithms,
+                   N_max = 10,
+                   measures = "precision",
+                   comparisons = list(c("Consensus","CSN_NCUA"),c("Consensus","DawnRank"),c("Consensus","OncoImpact"),c("Consensus","sysSVM2")),
+                   y_pos = c(0.07,0.08,0.09,0.10),
+                   y_pos_randomDriver = 0.12)
+
+ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", width = 15, height = 8, units = "cm")
 
 #####################
 # Quantitative Plot #
@@ -401,7 +265,7 @@ plot_data <- rare_vs_rare_quantitative_results %>%
   ) %>%
   ungroup() %>%
   mutate(algorithm = ifelse(str_detect(algorithm,"consensus"), "Consensus", algorithm)) %>%
-  filter(algorithm %in% algorithms) %>%
+  filter(toupper(algorithm) %in% toupper(algorithms)) %>%
   mutate(algorithm = factor(algorithm, levels = names(alg_colours))) %>%
   mutate(point_scale=   ifelse(
     final_rank <= top_colour, top_colour + 1 - final_rank, (1 - (   (final_rank - min(final_rank)) / (max(final_rank) - min(final_rank))   ))
@@ -435,8 +299,9 @@ ggplot(plot_data, aes(x=mean_weighted_z, y=mean_gene_effect, colour=point_scale)
   theme(legend.key.height = unit(0.7,"cm"),
         text = element_text(size = 10), 
         legend.text = element_text(size=7), 
-        legend.title = element_text(size=8)
+        legend.title = element_text(size=5)
   )
 
 
 ggsave("plots/benchmark/essential_genes_quantitative.svg", device = svglite, width = 15, height = 10, units = "cm")
+ggsave("plots/benchmark/essential_genes_quantitative.png", width = 15, height = 10, units = "cm")
