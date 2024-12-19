@@ -11,6 +11,7 @@ suppressPackageStartupMessages (library(readxl, quietly = T))
 suppressPackageStartupMessages (library(svglite, quietly = T))
 suppressPackageStartupMessages (library(patchwork, quietly = T))
 suppressPackageStartupMessages (library(ggpubr, quietly = T))
+suppressPackageStartupMessages (library(rstatix, quietly = T))
 
 
 
@@ -27,7 +28,6 @@ option_list = list(
                                                                    "sysSVM2",
                                                                    "PhenoDriverR",
                                                                    "CSN_NCUA",
-                                                                   "randomDriver",
                                                                    "consensus"),
               help="algorithms to include in comparison separated by semicolons, or 'ALL' (Default), or lead with '-' to exclude", metavar ="Algorithms"),
   make_option(c("-t", "--threads"), type="integer", default=4, 
@@ -52,6 +52,10 @@ cancer <- opt$cancertype
 cancer <- str_split(cancer,";") %>% unlist()
 n_predictions <- opt$n_predictions
 
+
+if(toupper(algorithms[1])!="ALL"){
+  algorithms <- append(algorithms,"randomDriver")
+}
 
 
 # A minimum number of gold standards allowed to each cell. If less are available, the cell is removed from calculations
@@ -413,10 +417,11 @@ top_n_plot_mean_CI(title="All Predictions vs CGC (Top 10)",
                    measures = "precision",
                    comparisons = list(c("Consensus","PersonaDrive"), c("Consensus","SCS")),
                    y_pos = c(0.6,0.7),
-                   y_pos_randomDriver = 0.8)
+                   y_pos_ref = 0.8,
+                   ref="randomDriver")
 
-ggsave("plots/benchmark/reference_drivers_precision_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
-ggsave("plots/benchmark/reference_drivers_precision_top10.png", width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/reference_drivers_precision_top10.svg", device = svglite, width = 19, height = 12, units = "cm")
+ggsave("plots/benchmark/reference_drivers_precision_top10.png", width = 19, height = 12, units = "cm")
 
 ####################
 # Unused Functions #

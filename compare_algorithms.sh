@@ -28,7 +28,7 @@ echo -e "\n\n---------------------------"
 echo -e "Comparing Resource Utilisation"
 echo -e "---------------------------\n\n"
 
-Rscript --vanilla "scripts/benchmark_resource_utilisation.R" -n $network_choice -a $benchmark_algorithms -c "all"
+Rscript --vanilla "scripts/benchmark_resource_utilisation.R" -n $network_choice -c "all"
 
 ###########################################################
 # Evaluation Prediction Similarity                        #
@@ -38,4 +38,4 @@ echo -e "\n\n---------------------------"
 echo -e "Evaluating Prediction Similarity"
 echo -e "---------------------------\n\n"
 
-Rscript --vanilla "scripts/"
+Rscript --vanilla "scripts/benchmark_similarity.R" -m $mode -n $network_choice -t $threads -s $sample_info

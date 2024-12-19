@@ -12,6 +12,7 @@ suppressPackageStartupMessages (library(svglite, quietly = T))
 suppressPackageStartupMessages (library(patchwork, quietly = T))
 suppressPackageStartupMessages (library(ggpubr, quietly = T))
 suppressPackageStartupMessages (library(ggh4x, quietly = T))
+suppressPackageStartupMessages (library(rstatix, quietly = T))
 
 # Handling input arguments
 option_list = list(
@@ -26,7 +27,6 @@ option_list = list(
                                                                    "sysSVM2",
                                                                    "PhenoDriverR",
                                                                    "CSN_NCUA",
-                                                                   "randomDriver",
                                                                    "Consensus",
                                                                    "pandrugs2"),
               help="algorithms to include in comparison separated by semicolons, or 'ALL' (Default), or lead with '-' to exclude", metavar ="Algorithms"),
@@ -57,6 +57,10 @@ panDrugs2_path <- opt$pandrugs2
 if(threads>1){
   cl <- makeCluster(threads, outfile = "log/benchmark_drug_predictions.log")
   registerDoParallel(cl)
+}
+
+if(toupper(algorithms[1])!="ALL"){
+  algorithms <- append(algorithms,c("randomDriver","randomDrug"))
 }
 
 
@@ -176,7 +180,7 @@ rare_drug_predictions <- rare_drug_predictions %>%
 # Read In Ground Truth Data #
 #############################
 
-gold_standard_drug_sensitivity <- read_csv(paste0("benchmark_data/",network_choice,"/gold_standard_drug_sensitivity"), show_col_types = F)
+gold_standard_drug_sensitivity <- read_csv(paste0("benchmark_data/network_",network_choice,"/gold_standard_drug_sensitivity.csv"), show_col_types = F)
 
 all_gold_standards <- gold_standard_drug_sensitivity %>%
   filter(global_sensitive) %>%
@@ -225,10 +229,11 @@ top_n_plot_mean_CI(title="All Predicted Sensitive Drugs vs All Ground Truth Sens
                    algs = algorithms,
                    N_max = 10,
                    measures = "precision",
-                   y_pos_randomDriver = 0.19)
+                   y_pos_ref = 0.19,
+                   ref="randomDrug")
 
-ggsave("plots/benchmark/drug_sensitivity_precision_all_vs_all_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
-ggsave("plots/benchmark/drug_sensitivity_precision_all_vs_all_top10.png", width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/drug_sensitivity_precision_all_vs_all_top10.svg", device = svglite, width = 19, height = 12, units = "cm")
+ggsave("plots/benchmark/drug_sensitivity_precision_all_vs_all_top10.png", width = 19, height = 12, units = "cm")
 
 ##########################
 # Rare vs Rare Benchmark #
@@ -261,7 +266,8 @@ top_n_plot_mean_CI(title="Rare Predicted Sensitive Drugs vs Rare Ground Truth Se
                    algs = algorithms,
                    N_max = 10,
                    measures = "precision",
-                   y_pos_randomDriver = 0.12)
+                   y_pos_ref = 0.12,
+                   ref="randomDrug")
 
 ggsave("plots/benchmark/drug_sensitivity_precision_rare_vs_rare_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
 ggsave("plots/benchmark/drug_sensitivity_precision_rare_vs_rare_top10.svg", width = 15, height = 8, units = "cm")

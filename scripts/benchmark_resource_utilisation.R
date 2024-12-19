@@ -32,7 +32,7 @@ celltypes <- opt$cancertype
 
 cell_counts <- fread(paste0("benchmark_data/network_",network_choice,"/summary_info/cell_counts.csv"))
 
-if(topper(celltypes) != "ALL"){
+if(toupper(celltypes) != "ALL"){
   celltypes <- str_split_1(celltypes, pattern = ";")
 }else{
   celltypes <- cell_counts$lineage
@@ -43,8 +43,8 @@ full_alg_list <- c(
 )
 
 
-if(algorithms != "ALL"){
-  celltypes <- str_split_1(celltypes, pattern = ";")
+if(toupper(algorithms) != "ALL"){
+  algorithms <- str_split_1(algorithms, pattern = ";")
 } else{
   algorithms <- full_alg_list
 }

@@ -39,17 +39,18 @@ plot_with_opacity <- function(summarised_stats, plot_measure, N_max, title=NULL)
     as.character()
   alg_linetype[alg_linetype=="Consensus"] <- "dotted"
   alg_linetype[alg_linetype=="randomDriver"] <- "dashed"
-  alg_linetype[alg_linetype=="randomDrug"] <- "dashed"
-  alg_linetype[!alg_linetype%in%c("dotted","dashed")] <- "solid"
+  alg_linetype[alg_linetype=="randomDrug"] <- "dotdash"
+  alg_linetype[!alg_linetype%in%c("dotted","dashed","dotdash")] <- "solid"
   
   p1 <- ggplot(mapping=aes(x = n, y = value, color = algorithm)) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(!str_detect(algorithm, "Consensus|random")), mapping=aes(alpha = sample_size), linewidth = 0.8) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="Consensus"), linetype = "dotted", linewidth = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm%in%c("randomDriver","randomDrug")), linetype = "dashed", linewidth = 0.8) +
+    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", linewidth = 0.8) +
+    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDrug"), linetype = "dotdash", linewidth = 0.8) +
     scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
     ylab(names(plot_measure)) +
     xlab("Number of Predicted Sensitive Genes") +
-    guides(colour=guide_legend(title="Algorithm (Colour)", override.aes = list(linetype = alg_linetype)),
+    guides(colour=guide_legend(title="Algorithm", override.aes = list(linetype = alg_linetype)),
            alpha="none",
     ) +
     theme_bw() +
@@ -89,17 +90,18 @@ plot_without_opacity <- function(summarised_stats, plot_measure, N_max, title=NU
     as.character()
   alg_linetype[alg_linetype=="Consensus"] <- "dotted"
   alg_linetype[alg_linetype=="randomDriver"] <- "dashed"
-  alg_linetype[alg_linetype=="randomDrug"] <- "dashed"
-  alg_linetype[!alg_linetype%in%c("dotted","dashed")] <- "solid"
+  alg_linetype[alg_linetype=="randomDrug"] <- "dotdash"
+  alg_linetype[!alg_linetype%in%c("dotted","dashed","dotdash")] <- "solid"
   
   ggplot(mapping=aes(x = n, y = value, color = algorithm)) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(!str_detect(algorithm, "Consensus|random")), linewidth = 0.8) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="Consensus"), linetype = "dotted", linewidth = 0.8) +
-    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm%in%c("randomDriver","randomDrug")), linetype = "dashed", linewidth = 0.8) +
+    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", linewidth = 0.8) +
+    geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDrug"), linetype = "dotdash", linewidth = 0.8) +
     scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
     ylab(names(plot_measure)) +
     xlab("Number of Predicted Sensitive Genes") +
-    guides(colour=guide_legend(title="Algorithm (Colour)", override.aes = list(linetype = alg_linetype)),
+    guides(colour=guide_legend(title="Algorithm", override.aes = list(linetype = alg_linetype)),
            alpha="none",
     ) +
     theme_bw() +
@@ -115,7 +117,7 @@ plot_without_opacity <- function(summarised_stats, plot_measure, N_max, title=NU
 }
 
 
-top_n_plot_mean_CI <- function(title,stats_df,algs,N_max=10, measures="precision", comparisons=list(), y_pos=c(), y_pos_randomDriver){
+top_n_plot_mean_CI <- function(title,stats_df,algs,N_max=10, measures="precision", comparisons=list(), y_pos=c(), y_pos_ref, ref="randomDriver"){
   
   
   prediction_stats_trim <- stats_df %>%
@@ -126,15 +128,15 @@ top_n_plot_mean_CI <- function(title,stats_df,algs,N_max=10, measures="precision
     filter(n==N_max) %>%
     dplyr::select(algorithm,sample_ID,precision,recall,F1)
   
+  vs_ref <- compare_means(precision~algorithm,data=prediction_stats_trim,p.adjust.method = "BH",method = "wilcox.test", ref.group = ref) %>%
+    add_significance(p.col = "p.adj", output.col = "p.adj.signif") %>% 
+    mutate(xpos=ifelse(group1==ref,group2,group1))
   
-  pairwise_stats <- compare_means(precision~algorithm,data=prediction_stats_trim,p.adjust.method = "BH",method = "wilcox.test") %>%
-    mutate(custom=ifelse(p.signif=="****", "<0.0001", "")) %>%
-    mutate(custom=ifelse(p.signif=="***", "<0.001", custom)) %>%
-    mutate(custom=ifelse(p.signif=="**", "<0.01", custom)) %>%
-    mutate(custom=ifelse(p.signif=="*", "<0.05", custom)) %>%
-    mutate(custom=ifelse(p.signif=="ns", "= ns",custom))
   
-  vs_randomDriver <- pairwise_stats %>% filter(group1=="randomDriver"|group2=="randomDriver") %>% mutate(xpos=ifelse(group1=="randomDriver",group2,group1))
+  
+  pairwise_stats <- compare_means(precision~algorithm,data=prediction_stats_trim %>% filter(algorithm!=ref),p.adjust.method = "BH",method = "wilcox.test") %>%
+    add_significance(p.col = "p.adj", output.col = "p.adj.signif")
+  
 
   specific_comparisons <- foreach(comp=comparisons, .combine = "rbind") %do% {
       pairwise_stats %>% filter(group1 %in% comp & group2 %in% comp)
@@ -166,13 +168,14 @@ top_n_plot_mean_CI <- function(title,stats_df,algs,N_max=10, measures="precision
   
   ggplot(plot_data, aes(x = algorithm, y = mean_precision, colour = algorithm)) +
     geom_point(position = position_dodge(width=0.75)) +
-    geom_errorbar(aes(ymin=mean_precision-ci95_precision,ymax=mean_precision+ci95_precision),
-                  position = position_dodge(width=0.75)) +
+    geom_errorbar(aes(ymin=mean_precision-ci95_precision,ymax=mean_precision+ci95_precision)#,
+                  #position = position_dodge(width=0.75)
+                  ) +
     scale_colour_manual(breaks = names(alg_colours),values = alg_colours) +
-    {if(length(comparisons)>0)stat_pvalue_manual(specific_comparisons,label="p.signif", 
-                       y.position = y_pos, color = "black", bracket.size = 0.5, tip.length = 0.01
+    {if(length(comparisons)>0)stat_pvalue_manual(specific_comparisons,label="p.adj.signif", 
+                       y.position = y_pos, color = "black", bracket.size = 0.5, tip.length = 0.01,hjust=0.5
     )} +
-    stat_pvalue_manual(vs_randomDriver, x="xpos", y.position = y_pos_randomDriver, label = "p.signif") +
+    stat_pvalue_manual(vs_ref, x="xpos", y.position = y_pos_ref, label = "p.adj.signif",hjust=0.5,hide.ns = T) +
     ylab("Mean Precision +/- 95%CI") +
     xlab("") +
     theme_bw() +

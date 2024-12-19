@@ -87,14 +87,14 @@ rare_essential_genes <- fread(paste0("results/",run_mode,"/network_",network_cho
 # Read In RandomDrug Predictions
 ###################################
 
-if(run_mode=="benchmark"){
-  message(paste0("Reading in randomDrug predictions"))
-  randomDrug <- foreach(result_dir=list.dirs(paste0("results/benchmark/network_",network_choice,"/randomDrug"), recursive = F), .combine = "rbind") %do% {
-      indiv_result <- foreach(result_file=list.files(result_dir),.combine = "rbind") %do% {
-                                fread(paste0(result_dir,"/",result_file))
-    }
-  } %>% dplyr::rename(drug_rank=rank)
-}
+#if(run_mode=="benchmark"){
+#  message(paste0("Reading in randomDrug predictions"))
+#  randomDrug <- foreach(result_dir=list.dirs(paste0("results/benchmark/network_",network_choice,"/randomDrug"), recursive = F), .combine = "rbind") %do% {
+#      indiv_result <- foreach(result_file=list.files(result_dir),.combine = "rbind") %do% {
+#                                fread(paste0(result_dir,"/",result_file))
+#    }
+#  } %>% dplyr::rename(drug_rank=rank)
+#}
 
 
 ###################################
@@ -109,7 +109,7 @@ if(run_mode=="predict"){
     mutate(n_targets=length(gene_ID)) %>%
     ungroup()
 }else if(run_mode=="benchmark"){
-  drug_targets <- fread(paste0("benchmark_data/",network_choice,"/drug_targets.csv")) %>%
+  drug_targets <- fread(paste0("benchmark_data/network_",network_choice,"/drug_targets.csv")) %>%
     dplyr::select(drug_ID,gene_ID) %>%
     unique() %>%
     # Get the number of gene targets for each drug
@@ -141,10 +141,10 @@ all_predictions <- all_essential_genes %>%
   ungroup() %>%
   arrange(algorithm,cancer_type,sample_ID,drug_rank)
 
-if(run_mode=="benchmark"){
-  all_predictions <- all_predictions %>%
-    bind_rows(randomDrug)
-}
+#if(run_mode=="benchmark"){
+#  all_predictions <- all_predictions %>%
+#    bind_rows(randomDrug)
+#}
 
 write_csv(all_predictions, paste0("results/",run_mode,"/network_",network_choice,"/all_drug_predictions.csv"))
 
@@ -166,10 +166,10 @@ rare_predictions <- rare_essential_genes %>%
   ungroup() %>%
   arrange(algorithm,cancer_type,sample_ID,drug_rank)
 
-if(run_mode=="benchmark"){
-  all_predictions <- rare_predictions %>%
-    bind_rows(randomDrug)
-}
+#if(run_mode=="benchmark"){
+#  all_predictions <- rare_predictions %>%
+#    bind_rows(randomDrug)
+#}
 
 
 write_csv(rare_predictions, paste0("results/",run_mode,"/network_",network_choice,"/rare_drug_predictions.csv"))

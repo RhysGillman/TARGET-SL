@@ -12,6 +12,7 @@ suppressPackageStartupMessages (library(svglite, quietly = T))
 suppressPackageStartupMessages (library(patchwork, quietly = T))
 suppressPackageStartupMessages (library(ggpubr, quietly = T))
 suppressPackageStartupMessages (library(ggh4x, quietly = T))
+suppressPackageStartupMessages (library(rstatix, quietly = T))
 
 # Handling input arguments
 option_list = list(
@@ -26,7 +27,6 @@ option_list = list(
                                                                    "sysSVM2",
                                                                    "PhenoDriverR",
                                                                    "CSN_NCUA",
-                                                                   "randomDriver",
                                                                    "Consensus"),
               help="algorithms to include in comparison separated by semicolons, or 'ALL' (Default), or lead with '-' to exclude", metavar ="Algorithms"),
   make_option(c("-t", "--threads"), type="integer", default=4, 
@@ -55,7 +55,9 @@ if(threads>1){
   registerDoParallel(cl)
 }
 
-
+if(toupper(algorithms[1])!="ALL"){
+  algorithms <- append(algorithms,"randomDriver")
+}
 
 alg_colours <- read_csv("data/algorithm_colours.csv", show_col_types = F) %>% deframe()
 if(any(!algorithms %in% names(alg_colours))){
@@ -93,14 +95,14 @@ rare_essential_genes <- fread(paste0("results/benchmark/network_",network_choice
 # Read In Predicted Ground Truth Data #
 #######################################
 
-gold_standard <- fread(paste0("benchmark_data/",network_choice,"/gold_standards.csv")) %>%
+gold_standard <- fread(paste0("benchmark_data/network_",network_choice,"/gold_standards.csv")) %>%
   dplyr::select(sample_ID=cell_ID,gene_ID) %>%
   unique() %>%
   group_by(sample_ID) %>%
   summarise(sensitive_genes = list(gene_ID)) %>%
   deframe()
 
-rare_gold_standard <- fread(paste0("benchmark_data/",network_choice,"/rare_gold_standards.csv")) %>%
+rare_gold_standard <- fread(paste0("benchmark_data/network_",network_choice,"/rare_gold_standards.csv")) %>%
   dplyr::select(sample_ID=cell_ID,gene_ID) %>%
   unique() %>%
   group_by(sample_ID) %>%
@@ -143,10 +145,11 @@ top_n_plot_mean_CI(title="All Predicted Essential Genes vs All Ground Truth Esse
                    measures = "precision",
                    comparisons = list(c("Consensus","CSN_NCUA"), c("Consensus","OncoImpact")),
                    y_pos = c(0.45,0.55),
-                   y_pos_randomDriver = 0.65)
+                   y_pos_ref = 0.65,
+                   ref="randomDriver")
 
-ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
-ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.png", width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.svg", device = svglite, width = 19, height = 12, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_all_vs_all_top10.png", width = 19, height = 12, units = "cm")
 
 ##########################
 # Rare vs Rare Benchmark #
@@ -179,12 +182,13 @@ top_n_plot_mean_CI(title="Rare Predicted Essential Genes vs Rare Ground Truth Es
                    algs = algorithms,
                    N_max = 10,
                    measures = "precision",
-                   comparisons = list(c("Consensus","CSN_NCUA"),c("Consensus","DawnRank"),c("Consensus","OncoImpact"),c("Consensus","sysSVM2")),
-                   y_pos = c(0.07,0.08,0.09,0.10),
-                   y_pos_randomDriver = 0.12)
+                   comparisons = list(c("Consensus","sysSVM2")),
+                   y_pos = c(0.07),
+                   y_pos_ref = 0.08,
+                   ref="randomDriver")
 
-ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", device = svglite, width = 15, height = 8, units = "cm")
-ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", width = 15, height = 8, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", device = svglite, width = 19, height = 12, units = "cm")
+ggsave("plots/benchmark/essential_genes_precision_rare_vs_rare_top10.svg", width = 19, height = 12, units = "cm")
 
 #####################
 # Quantitative Plot #
@@ -299,7 +303,8 @@ ggplot(plot_data, aes(x=mean_weighted_z, y=mean_gene_effect, colour=point_scale)
   theme(legend.key.height = unit(0.7,"cm"),
         text = element_text(size = 10), 
         legend.text = element_text(size=7), 
-        legend.title = element_text(size=5)
+        legend.title = element_text(size=8),
+        axis.text = element_text(size=5)
   )
 
 
