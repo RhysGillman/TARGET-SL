@@ -287,26 +287,26 @@ proof_of_concept_plot <- function(type,measure,predictions,ylims,ypos,seed){
   
   ggplot(plot_data, aes(x=algorithm, y=measure)) +
     geom_boxplot(aes(fill=algorithm),outlier.shape = NA, notch = T,lwd=0.3) +
-    stat_pvalue_manual(stats,label="{p.adj.signif}, D = {effsize}", 
-                       y.position = ypos, color = "red", bracket.size = 0.5, tip.length = 0.01, size = 2.5
+    stat_pvalue_manual(stats,label="{p.adj.signif} | D = {effsize}", 
+                       y.position = ypos, color = "red", bracket.size = 0.5, tip.length = 0.01, size = 4
     ) +
     scale_fill_manual(labels=c("control"="Not Predicted (Background Control)",
                                "CGC_Tier_1"="TARGET-SL + CGC Tier 1",
                                "PDPA"="TARGET-SL + PDPA"),
                       values=c("#A0B1BA","#FF1F5B","#009ADE")) +
-    guides(fill=guide_legend("Predictions")) +
+    guides(fill=guide_legend("")) +
     ylab(ifelse(measure=="raw", ifelse(type=="gene", "Raw Gene Effect", "Drug lnIC50"), ifelse(type=="gene", "Gene Uniqueness Index", "Drug Uniqueness Index"))) +
     xlab("") +
     theme_bw() +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
     coord_cartesian(ylim=ylims) +
-    theme(text = element_text(size = 10))
+    theme(text = element_text(size = 25))
 
 }   
 
 p1 <- proof_of_concept_plot(type="gene",measure = "raw", predictions = rare_essential_genes, ylims = c(-3,2), ypos = c(1.5,1.9,1.5), seed=999)
-p2 <- proof_of_concept_plot(type="gene",measure = "uniqueness", predictions = rare_essential_genes, ylims = c(-3,3), ypos = c(2.7,3,2.7), seed=999)    
-p3 <- proof_of_concept_plot(type="drug",measure = "raw", predictions = rare_drug_predictions, ylims = c(-5,10.7), ypos = c(9.5,10.5,9.5), seed=999)  
+p2 <- proof_of_concept_plot(type="drug",measure = "raw", predictions = rare_drug_predictions, ylims = c(-5,10.7), ypos = c(9.5,10.5,9.5), seed=999) 
+p3 <- proof_of_concept_plot(type="gene",measure = "uniqueness", predictions = rare_essential_genes, ylims = c(-3,3), ypos = c(2.7,3,2.7), seed=999)    
 p4 <- proof_of_concept_plot(type="drug",measure = "uniqueness", predictions = rare_drug_predictions, ylims = c(-3,3), ypos = c(2.7,3,2.7), seed=999) 
 
 p1 + p2 + p3 + p4 + plot_layout(guides = "collect", nrow = 1) & theme(legend.position = "bottom")
