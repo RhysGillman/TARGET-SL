@@ -14,11 +14,11 @@ suppressPackageStartupMessages (library(parallel, quietly = T))
 # Handling input arguments
 option_list = list(
   #Sample info
-  make_option(c("-s", "--sampleinfo"), type="character", default="data/sample_info.csv", 
-              help="path to sample info file", metavar ="Sample Info"),
-  make_option(c("-l", "--LOFGOFfilepath"), type="character", default="data/LOFGOF/LoGoFuncVotingEnsemble_preds_final.csv", 
+  #make_option(c("-s", "--sampleinfo"), type="character", default="data/sample_info.csv", 
+  #            help="path to sample info file", metavar ="Sample Info"),
+  make_option(c("-l", "--LOFGOFfilepath"), type="character", default="data/LOFGOF/logofunc-predictions/LoGoFuncVotingEnsemble_preds_final.csv", 
               help="Path to LoGoFunc Prediction file", metavar ="LOFGOF File Path"),
-  make_option(c("-m", "--mutationfilepath"), type="character", default="data/LCC_TCGA_mutations.csv", 
+  make_option(c("-m", "--mutationfilepath"), type="character", default="data/CCLE/OmicsSomaticMutations.csv", 
               help="Path to mutations file", metavar ="Mutations File Path"),
   make_option(c("-o", "--outputfilepath"), type="character", default="data/LOFGOF/itan1_annotated_mutations.csv", 
               help="Path to output file", metavar ="Output File Path"),
@@ -44,7 +44,7 @@ threads <- opt$threads
 TempDir <- opt$TempDir
 saveMemory <- opt$saveMemory
 LOF_GOF_lines <- opt$Lines
-sample_info_path <- opt$sampleinfo
+#sample_info_path <- opt$sampleinfo
 
 if(threads>1){
   cl <- makeCluster(threads, outfile = "log/map_genomic_LOF_GOFs.log")
@@ -56,17 +56,9 @@ if(threads>1){
 # Sample Info
 #############################
 
-sample_info <- fread(sample_info_path) %>% filter(get_results)
-
-patients <- sample_info %>% pull(patient) %>% unique() %>% sort()
-
-
-
-
-
-
-
-mutations <- fread(mutationfilepath) %>% filter(patient %in% patients)
+#sample_info <- fread(sample_info_path) %>% filter(get_results)
+#patients <- sample_info %>% pull(patient) %>% unique() %>% sort()
+#mutations <- fread(mutationfilepath) %>% filter(patient %in% patients)
 
 
 if(saveMemory){

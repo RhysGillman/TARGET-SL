@@ -24,6 +24,15 @@ opt = parse_args(opt_parser);
 
 threads <- opt$threads
 
+#############################
+# Get cell line information
+###############################
+
+sample_info <- read_csv("data/CCLE/Model.csv") %>%
+  dplyr::rename(DepMap_ID=ModelID, lineage=OncotreeLineage, cell_ID=StrippedCellLineName)
+
+
+
 
 #Paper: https://www.sciencedirect.com/science/article/pii/S0002929721003840#app3
 
@@ -648,8 +657,8 @@ mutation <- fixed_annotations
 # Copy Number Variants
 #######################
 
-cnv <- fread("data/LCC_cnv_matrix.csv") %>%
-  pivot_longer(-gene_ID, names_to = "patient", values_to = "cnv") %>%
+cnv <- fread("data/CCLE/corrected_cnv.csv") %>%
+  pivot_longer(-gene_ID, names_to = "cell_ID", values_to = "cnv") %>%
   filter(cnv != 0) %>%
   mutate(cnv_LOF_GOF=ifelse(cnv==1, "GOF","LOF"))
 
@@ -661,8 +670,9 @@ cnv <- fread("data/LCC_cnv_matrix.csv") %>%
 #######################
 
 all_annotations <- mutation %>%
-  full_join(cnv, by=c("gene_ID","patient")) %>%
-                                      # Check if cnv_LOF_GOF isn't NA
+  left_join(sample_info %>% dplyr::select(DepMap_ID,cell_ID), by = "DepMap_ID") %>%
+  full_join(cnv, by=c("gene_ID","cell_ID")) %>%
+  # Check if cnv_LOF_GOF isn't NA
   mutate(combined_prediction = ifelse(!is.na(cnv_LOF_GOF), 
                                       # TRUE: Check if SNP prediction is NA
                                       ifelse(is.na(final_prediction), 
@@ -676,9 +686,9 @@ all_annotations <- mutation %>%
                                                     "both")),
                                       # FALSE: Make it the SNP annotation
                                       final_prediction
-                                      )
-         
-         )
+  )
+  
+  )
 
 all_annotations %>% group_by(combined_prediction) %>% summarise(n())
 
@@ -688,7 +698,7 @@ all_annotations %>% group_by(combined_prediction) %>% summarise(n())
 #2 LOF        1283672
 #3 both         30989
 
-write_csv(all_annotations,"data/LOF_GOF_annotations_all_evidence.csv")
+write_csv(all_annotations,"benchmark_data/LOF_GOF_annotations_all_evidence.csv")
 
 #all_annotations <- fread("data/LOF_GOF_annotations_all_evidence.csv")
 
@@ -698,11 +708,11 @@ write_csv(all_annotations,"data/LOF_GOF_annotations_all_evidence.csv")
 ################
 
 LOF_GOF_annotations <- all_annotations %>%
-  dplyr::select(patient,gene_ID,annotation=combined_prediction) %>%
+  dplyr::select(cell_ID,gene_ID,annotation=combined_prediction) %>%
   unique() %>%
   ungroup() %>%
   # Need to indicate if a single gene has both GOF and LOF mutations
-  group_by(patient,gene_ID) %>%
+  group_by(cell_ID,gene_ID) %>%
   summarise(annotation=paste0(annotation, collapse = "and")) %>%
   ungroup() %>%
   mutate(annotation=ifelse(str_detect(annotation,"and"),"both",annotation))
@@ -717,7 +727,7 @@ summary <- LOF_GOF_annotations %>% group_by(annotation) %>% summarise(count=n())
 
 write_csv(summary,"data/LOF_GOF_total_summary.csv")
 
-summary <- LOF_GOF_annotations %>% group_by(patient,annotation) %>% summarise(count=n()) %>% pivot_wider(names_from = annotation, values_from = count)
+summary <- LOF_GOF_annotations %>% group_by(cell_ID,annotation) %>% summarise(count=n()) %>% pivot_wider(names_from = annotation, values_from = count)
 
 write_csv(summary,"data/LOF_GOF_sample_summary.csv")
 
@@ -726,4 +736,4 @@ write_csv(summary,"data/LOF_GOF_sample_summary.csv")
 #write.table(LOF_GOF_annotations %>% group_by(annotation) %>% summarise(count=n()), "log/LOF_GOF_annotation_stats.txt", append = T,sep = "\t", row.names = F)
 
 
-write_csv(LOF_GOF_annotations,"data/LOF_GOF_annotations.csv")
+write_csv(LOF_GOF_annotations,"benchmark_data/LOF_GOF_annotations.csv")
