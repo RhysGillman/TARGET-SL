@@ -48,6 +48,7 @@ plot_with_opacity <- function(summarised_stats, plot_measure, N_max, title=NULL)
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", linewidth = 0.8) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDrug"), linetype = "dotdash", linewidth = 0.8) +
     scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
+    scale_x_continuous(breaks=seq(1,N_max),minor_breaks=seq(1,N_max)) +
     ylab(names(plot_measure)) +
     xlab("Number of Predicted Sensitive Genes") +
     guides(colour=guide_legend(title="Algorithm", override.aes = list(linetype = alg_linetype)),
@@ -99,6 +100,7 @@ plot_without_opacity <- function(summarised_stats, plot_measure, N_max, title=NU
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDriver"), linetype = "dashed", linewidth = 0.8) +
     geom_line(data=plot_data %>% filter(n<=N_max) %>% filter(algorithm=="randomDrug"), linetype = "dotdash", linewidth = 0.8) +
     scale_color_manual(breaks = names(alg_colours),values = alg_colours) +
+    scale_x_continuous(breaks=seq(1,N_max),minor_breaks=seq(1,N_max)) +
     ylab(names(plot_measure)) +
     xlab("Number of Predicted Sensitive Genes") +
     guides(colour=guide_legend(title="Algorithm", override.aes = list(linetype = alg_linetype)),
