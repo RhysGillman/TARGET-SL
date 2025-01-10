@@ -5,5 +5,5 @@
 log/
 results/
 tmp/
-benchmark_data/network_own
+benchmark_data/
 TARGET-SL.Rproj
